@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.ComponentModel;
 
 namespace WonderfulPanda.Controls
 {
@@ -106,19 +107,50 @@ namespace WonderfulPanda.Controls
         #endregion
         private void ResetColumns()
         {
+            if (this.FrozenColumns != null)
+            {
+                foreach (var col in this.FrozenColumns.Cast<INotifyPropertyChanged>())
+                    col.PropertyChanged -= frozencol_PropertyChanged;
+                this.FrozenColumns.Clear();
+            }
+
+            if (this.ScrollableColumns != null)
+                this.ScrollableColumns.Clear();
+
             var frozenColumnIndex = this.FrozenColumnIndex;
             var frozenColumns = new GridViewColumnCollection();
             var scrollableColumns = new GridViewColumnCollection();
             var columns = this.Columns;
             if (columns != null)
             {
-                foreach (var col in columns.Take(frozenColumnIndex))
+                foreach (var col in columns.Take(frozenColumnIndex + 1))
+                {
+                    ((INotifyPropertyChanged)col).PropertyChanged += frozencol_PropertyChanged;
                     frozenColumns.Add(col);
-                foreach (var col in columns.Skip(frozenColumnIndex))
+                }
+                foreach (var col in columns.Skip(frozenColumnIndex + 1))
                     scrollableColumns.Add(col);
             }
             this.FrozenColumns = frozenColumns;
             this.ScrollableColumns = scrollableColumns;
+            ResetFrozenColumnsWidth();
+        }
+
+        private void frozencol_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "ActualWidth")
+            {
+                ResetFrozenColumnsWidth();
+            }
+        }
+        
+        private void ResetFrozenColumnsWidth()
+        {
+            var frozenColumns = this.FrozenColumns;
+            if (frozenColumns != null)
+                this.FrozenColumnsWidth = frozenColumns.Select(c => c.ActualWidth).Sum()+ 1;
+            else
+                this.FrozenColumnsWidth = 0;
         }
 
         public override void OnApplyTemplate()
@@ -133,7 +165,6 @@ namespace WonderfulPanda.Controls
         {
             if (e.HorizontalChange == 0)
                 return;
-
         }
 
     }

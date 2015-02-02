@@ -1,7 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:WonderfulPanda.Controls">
-    
+
     <Style TargetType="{x:Type local:ListViewEx}">
         <Setter Property="VirtualizingStackPanel.IsVirtualizing" Value="True" />
         <Setter Property="ScrollViewer.CanContentScroll" Value="True" />
@@ -11,10 +11,25 @@
                     <Border Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
-                        <ScrollViewer Name="PART_ScrollViewer" Padding="{TemplateBinding Control.Padding}"
-                                      Focusable="False">
-                            <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
-                        </ScrollViewer>
+                        <Grid HorizontalAlignment="Stretch">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+                            <Border BorderBrush="{x:Static SystemColors.WindowTextBrush}" BorderThickness="0,0,1.5,0" Grid.Row="0">
+                                <GridViewHeaderRowPresenter Columns="{TemplateBinding FrozenColumns}" />
+                            </Border>
+                            <GridViewHeaderRowPresenter Columns="{TemplateBinding ScrollableColumns}"
+                                                        Margin="{TemplateBinding FrozenColumnsWidth, Converter={x:Static local:Converters.LeftMargin}}"
+                                                        Grid.Row="0" />
+                            <ScrollViewer Name="PART_ScrollViewer" Padding="{TemplateBinding Control.Padding}"
+                                        HorizontalScrollBarVisibility="Auto"
+                                        VerticalScrollBarVisibility="Auto"
+                                        Focusable="False"
+                                        Grid.Row="1">
+                                <ItemsPresenter SnapsToDevicePixels="{TemplateBinding UIElement.SnapsToDevicePixels}" />
+                            </ScrollViewer>
+                        </Grid>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
@@ -24,6 +39,25 @@
                 <ItemsPanelTemplate>
                     <VirtualizingStackPanel />
                 </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Grid>
+                                    <GridViewRowPresenter Columns="{Binding FrozenColumns, RelativeSource={RelativeSource AncestorType=local:ListViewEx}}"
+                                                          Margin="{Binding HorizontalOffset, ElementName=PART_ScrollViewer, Converter={x:Static local:Converters.LeftMargin}}" />
+                                    <GridViewRowPresenter Columns="{Binding ScrollableColumns, RelativeSource={RelativeSource AncestorType=local:ListViewEx}}"
+                                                          Margin="{Binding FrozenColumnsWidth, RelativeSource={RelativeSource AncestorType=local:ListViewEx}, 
+                                                                                               Converter={x:Static local:Converters.LeftMargin}}"/>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
             </Setter.Value>
         </Setter>
     </Style>

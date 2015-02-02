@@ -13,6 +13,7 @@
     </Window.Resources>
     <Grid>
         <ctl:ListViewEx Columns="{StaticResource columns}"
+                        FrozenColumnIndex="0"
                         ItemsSource="{Binding Path=Items, Source={StaticResource viewmodel}}"
                         >
             
