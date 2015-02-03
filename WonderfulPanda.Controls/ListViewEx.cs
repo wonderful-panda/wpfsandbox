@@ -26,6 +26,27 @@ namespace WonderfulPanda.Controls
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ListViewEx), new FrameworkPropertyMetadata(typeof(ListViewEx)));
         }
 
+        public class HorizontalLayoutInfo
+        {
+            public double FrozenWidth { get; private set; }
+            public Thickness FrozenColumnsMargin { get; private set; }
+            public Thickness ScrollableColumnsMargin { get; private set; }
+            public Thickness FrozenHeadersMargin { get; private set; }
+            public Thickness ScrollableHeadersMargin { get; private set; }
+
+            public HorizontalLayoutInfo(double scrollOffset, double viewportWidth, double frozenWidth)
+            {
+                this.FrozenWidth = frozenWidth;
+                if (viewportWidth < this.FrozenWidth)
+                    this.FrozenColumnsMargin = new Thickness(0, 0, 0, 0);
+                else
+                    this.FrozenColumnsMargin = new Thickness(scrollOffset, 0, 0, 0);
+                this.ScrollableColumnsMargin = new Thickness(frozenWidth, 0, 0, 0);
+                this.FrozenHeadersMargin = new Thickness(0);
+                this.ScrollableHeadersMargin = new Thickness(frozenWidth - scrollOffset, 0, 0, 0);
+            }
+        }
+
         #region ColumnsProperty
 
         public GridViewColumn[] Columns
@@ -92,19 +113,20 @@ namespace WonderfulPanda.Controls
 
         #endregion
 
-        #region FrozenColumnsWidth
+        #region HorizontalLayout
 
-        public double FrozenColumnsWidth
+        public HorizontalLayoutInfo HorizontalLayout
         {
-            get { return (double)GetValue(FrozenColumnsWidthProperty); }
-            protected set { SetValue(_FrozenColumnsWidthPropertyKey, value); }
+            get { return (HorizontalLayoutInfo)GetValue(HorizontalLayoutProperty); }
+            protected set { SetValue(_HorizontalLayoutPropertyKey, value); }
         }
 
-        static readonly DependencyPropertyKey _FrozenColumnsWidthPropertyKey = DependencyProperty.RegisterAttachedReadOnly(
-            "FrozenColumnsWidth", typeof(double), typeof(ListViewEx), new PropertyMetadata(0.0));
-        public static readonly DependencyProperty FrozenColumnsWidthProperty = _FrozenColumnsWidthPropertyKey.DependencyProperty;
+        static readonly DependencyPropertyKey _HorizontalLayoutPropertyKey = DependencyProperty.RegisterAttachedReadOnly(
+            "HorizontalLayout", typeof(HorizontalLayoutInfo), typeof(ListViewEx), new PropertyMetadata(new HorizontalLayoutInfo(0, 0, 0)));
+        public static readonly DependencyProperty HorizontalLayoutProperty = _HorizontalLayoutPropertyKey.DependencyProperty;
 
         #endregion
+
         private void ResetColumns()
         {
             if (this.FrozenColumns != null)
@@ -133,24 +155,26 @@ namespace WonderfulPanda.Controls
             }
             this.FrozenColumns = frozenColumns;
             this.ScrollableColumns = scrollableColumns;
-            ResetFrozenColumnsWidth();
+            ResetHorizontalLayout();
         }
 
         private void frozencol_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "ActualWidth")
             {
-                ResetFrozenColumnsWidth();
+                ResetHorizontalLayout();
             }
         }
         
-        private void ResetFrozenColumnsWidth()
+        private void ResetHorizontalLayout()
         {
             var frozenColumns = this.FrozenColumns;
-            if (frozenColumns != null)
-                this.FrozenColumnsWidth = frozenColumns.Select(c => c.ActualWidth).Sum()+ 1;
-            else
-                this.FrozenColumnsWidth = 0;
+            double frozenWidth = frozenColumns != null ? 
+                                 frozenColumns.Select(c => c.ActualWidth).Sum()+ 1 : 0;
+            double horizontalOffset = _scrollViewer != null ? _scrollViewer.HorizontalOffset : 0;
+            double viewportWidth = _scrollViewer != null ? _scrollViewer.ViewportWidth: 0;
+
+            this.HorizontalLayout = new HorizontalLayoutInfo(horizontalOffset, viewportWidth, frozenWidth);
         }
 
         public override void OnApplyTemplate()
@@ -158,13 +182,23 @@ namespace WonderfulPanda.Controls
             base.OnApplyTemplate();
             _scrollViewer = this.GetTemplateChild("PART_ScrollViewer") as ScrollViewer;
             if (_scrollViewer != null)
+            {
                 _scrollViewer.ScrollChanged += _scrollViewer_ScrollChanged;
+                _scrollViewer.SizeChanged += _scrollViewer_SizeChanged;
+            }
+            this.ResetHorizontalLayout();
+        }
+
+        private void _scrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            this.ResetHorizontalLayout();
         }
 
         void _scrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             if (e.HorizontalChange == 0)
                 return;
+            this.ResetHorizontalLayout();
         }
 
     }
