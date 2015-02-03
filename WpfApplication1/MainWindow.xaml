@@ -18,6 +18,7 @@
     <Grid>
         <ctl:ListViewEx FrozenColumns="{StaticResource frozencolumns}"
                         NormalColumns="{StaticResource columns}"
+                        SelectionMode="Extended"
                         ItemsSource="{Binding Path=Items, Source={StaticResource viewmodel}}"
                         >
             

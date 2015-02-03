@@ -39,7 +39,7 @@ namespace WonderfulPanda.Controls
 
         public static readonly DependencyProperty FrozenColumnsProperty =
             DependencyProperty.Register("FrozenColumns", typeof(GridViewColumnCollection), typeof(ListViewEx), 
-                                        new PropertyMetadata(null, OnFrozenColumnsChanged));
+                                        new PropertyMetadata(new GridViewColumnCollection(), OnFrozenColumnsChanged));
 
         private static void OnFrozenColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
@@ -74,7 +74,7 @@ namespace WonderfulPanda.Controls
 
         public static readonly DependencyProperty NormalColumnsProperty =
             DependencyProperty.Register("NormalColumns", typeof(GridViewColumnCollection), 
-                                        typeof(ListViewEx), new PropertyMetadata(null));
+                                        typeof(ListViewEx), new PropertyMetadata(new GridViewColumnCollection()));
         
         #endregion
 

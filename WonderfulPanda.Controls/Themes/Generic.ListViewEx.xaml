@@ -57,7 +57,7 @@
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="ListBoxItem">
-                                <Grid>
+                                <Grid Name="RowGrid" Background="{x:Static SystemColors.WindowBrush}">
                                     <GridViewRowPresenter
                                         Columns="{Binding NormalColumns, 
                                                           RelativeSource={RelativeSource AncestorType=local:ListViewEx}}"
@@ -65,7 +65,6 @@
                                                          RelativeSource={RelativeSource AncestorType=local:ListViewEx}}" />
                                     <Border HorizontalAlignment="Left" VerticalAlignment="Stretch"
                                             BorderThickness="0,0,1,0" BorderBrush="{x:Static SystemColors.ControlDarkBrush}"
-                                            Background="{x:Static SystemColors.WindowBrush}"
                                             Margin="{Binding FrozenColumnsMargin, 
                                                              RelativeSource={RelativeSource AncestorType=local:ListViewEx}}"
                                             Width="{Binding FrozenColumnsTotalWidth, 
@@ -77,6 +76,44 @@
                                             Margin="{Binding FrozenColumnsMargin, 
                                                              RelativeSource={RelativeSource AncestorType=local:ListViewEx}}" />
                                 </Grid>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="Selector.IsSelected" Value="True">
+                                        <Setter Property="Grid.Background" TargetName="RowGrid">
+                                            <Setter.Value>
+                                                <DynamicResource ResourceKey="{x:Static SystemColors.HighlightBrushKey}" />
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Setter Property="TextElement.Foreground">
+                                            <Setter.Value>
+                                                <DynamicResource ResourceKey="{x:Static SystemColors.HighlightTextBrushKey}" />
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                    <MultiTrigger>
+                                        <MultiTrigger.Conditions>
+                                            <Condition Property="Selector.IsSelected" Value="True" />
+                                            <Condition Property="Selector.IsSelectionActive" Value="False" />
+                                        </MultiTrigger.Conditions>
+                                        <Setter Property="Grid.Background">
+                                            <Setter.Value>
+                                                <DynamicResource ResourceKey="{x:Static SystemColors.ControlBrushKey}" />
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Setter Property="TextElement.Foreground">
+                                            <Setter.Value>
+                                                <DynamicResource ResourceKey="{x:Static SystemColors.ControlTextBrushKey}" />
+                                            </Setter.Value>
+                                        </Setter>
+                                    </MultiTrigger>
+                                    <Trigger Property="UIElement.IsEnabled" Value="False">
+                                        <Setter Property="TextElement.Foreground">
+                                            <Setter.Value>
+                                                <DynamicResource ResourceKey="{x:Static SystemColors.GrayTextBrushKey}" />
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+
                             </ControlTemplate>
                         </Setter.Value>
                     </Setter>
