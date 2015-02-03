@@ -5,15 +5,19 @@
         xmlns:local="clr-namespace:WpfApplication1"
         Title="MainWindow" Height="350" Width="525">
     <Window.Resources>
-        <x:Array x:Key="columns" Type="GridViewColumn">
-            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" />
-            <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}" />
-        </x:Array>
+        <GridViewColumnCollection x:Key="frozencolumns">
+            <GridViewColumn Header="Name1" DisplayMemberBinding="{Binding Name}" />
+            <GridViewColumn Header="Name2" DisplayMemberBinding="{Binding Name}" />
+        </GridViewColumnCollection>
+        <GridViewColumnCollection x:Key="columns">
+            <GridViewColumn Header="Value1" DisplayMemberBinding="{Binding Value}" />
+            <GridViewColumn Header="Value2" DisplayMemberBinding="{Binding Value}" />
+        </GridViewColumnCollection>
         <local:ViewModel x:Key="viewmodel" />
     </Window.Resources>
     <Grid>
-        <ctl:ListViewEx Columns="{StaticResource columns}"
-                        FrozenColumnIndex="0"
+        <ctl:ListViewEx FrozenColumns="{StaticResource frozencolumns}"
+                        NormalColumns="{StaticResource columns}"
                         ItemsSource="{Binding Path=Items, Source={StaticResource viewmodel}}"
                         >
             

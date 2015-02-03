@@ -26,157 +26,156 @@ namespace WonderfulPanda.Controls
             DefaultStyleKeyProperty.OverrideMetadata(typeof(ListViewEx), new FrameworkPropertyMetadata(typeof(ListViewEx)));
         }
 
-        public class HorizontalLayoutInfo
-        {
-            public double FrozenWidth { get; private set; }
-            public Thickness FrozenColumnsMargin { get; private set; }
-            public Thickness ScrollableColumnsMargin { get; private set; }
-            public Thickness FrozenHeadersMargin { get; private set; }
-            public Thickness ScrollableHeadersMargin { get; private set; }
-
-            public HorizontalLayoutInfo(double scrollOffset, double viewportWidth, double frozenWidth)
-            {
-                this.FrozenWidth = frozenWidth;
-                if (viewportWidth < this.FrozenWidth)
-                    this.FrozenColumnsMargin = new Thickness(0, 0, 0, 0);
-                else
-                    this.FrozenColumnsMargin = new Thickness(scrollOffset, 0, 0, 0);
-                this.ScrollableColumnsMargin = new Thickness(frozenWidth, 0, 0, 0);
-                this.FrozenHeadersMargin = new Thickness(0);
-                this.ScrollableHeadersMargin = new Thickness(frozenWidth - scrollOffset, 0, 0, 0);
-            }
-        }
-
-        #region ColumnsProperty
-
-        public GridViewColumn[] Columns
-        {
-            get { return (GridViewColumn[])GetValue(ColumnsProperty); }
-            set { SetValue(ColumnsProperty, value); }
-        }
-
-        public static readonly DependencyProperty ColumnsProperty =
-            DependencyProperty.Register("Columns", typeof(GridViewColumn[]), typeof(ListViewEx),
-                                        new PropertyMetadata(null, ColumnsChanged));
-
-        private static void ColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            ((ListViewEx)d).ResetColumns();
-        }
-
-        #endregion
-
-        #region FrozenColumnIndex
-
-        public int FrozenColumnIndex
-        {
-            get { return (int)GetValue(FrozenColumnIndexProperty); }
-            set { SetValue(FrozenColumnIndexProperty, value); }
-        }
-
-        public static readonly DependencyProperty FrozenColumnIndexProperty =
-            DependencyProperty.Register("FrozenColumnIndex", typeof(int), typeof(ListViewEx),
-                                        new PropertyMetadata(-1, FrozenColumnIndexChanged));
-
-        private static void FrozenColumnIndexChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            ((ListViewEx)d).ResetColumns();
-        }
-
-        #endregion
-
         #region FrozenColumns
 
+        /// <summary>
+        /// 固定する列のコレクション
+        /// </summary>
         public GridViewColumnCollection FrozenColumns
         {
             get { return (GridViewColumnCollection)GetValue(FrozenColumnsProperty); }
-            protected set { SetValue(_FrozenColumnsPropertyKey, value); }
+            set { SetValue(FrozenColumnsProperty, value); }
         }
 
-        static readonly DependencyPropertyKey _FrozenColumnsPropertyKey = DependencyProperty.RegisterAttachedReadOnly(
-            "FrozenColumns", typeof(GridViewColumnCollection), typeof(ListViewEx), new PropertyMetadata(null));
-        public static readonly DependencyProperty FrozenColumnsProperty = _FrozenColumnsPropertyKey.DependencyProperty;
+        public static readonly DependencyProperty FrozenColumnsProperty =
+            DependencyProperty.Register("FrozenColumns", typeof(GridViewColumnCollection), typeof(ListViewEx), 
+                                        new PropertyMetadata(null, OnFrozenColumnsChanged));
 
-        #endregion
-
-        #region ScrollableColumns
-
-        public GridViewColumnCollection ScrollableColumns
+        private static void OnFrozenColumnsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            get { return (GridViewColumnCollection)GetValue(ScrollableColumnsProperty); }
-            protected set { SetValue(_ScrollableColumnsPropertyKey, value); }
-        }
+            var target = d as ListViewEx;
+            if (d == null)
+                return;
 
-        static readonly DependencyPropertyKey _ScrollableColumnsPropertyKey = DependencyProperty.RegisterAttachedReadOnly(
-            "ScrollableColumns", typeof(GridViewColumnCollection), typeof(ListViewEx), new PropertyMetadata(null));
-        public static readonly DependencyProperty ScrollableColumnsProperty = _ScrollableColumnsPropertyKey.DependencyProperty;
-
-        #endregion
-
-        #region HorizontalLayout
-
-        public HorizontalLayoutInfo HorizontalLayout
-        {
-            get { return (HorizontalLayoutInfo)GetValue(HorizontalLayoutProperty); }
-            protected set { SetValue(_HorizontalLayoutPropertyKey, value); }
-        }
-
-        static readonly DependencyPropertyKey _HorizontalLayoutPropertyKey = DependencyProperty.RegisterAttachedReadOnly(
-            "HorizontalLayout", typeof(HorizontalLayoutInfo), typeof(ListViewEx), new PropertyMetadata(new HorizontalLayoutInfo(0, 0, 0)));
-        public static readonly DependencyProperty HorizontalLayoutProperty = _HorizontalLayoutPropertyKey.DependencyProperty;
-
-        #endregion
-
-        private void ResetColumns()
-        {
-            if (this.FrozenColumns != null)
+            if (e.OldValue != null)
             {
-                foreach (var col in this.FrozenColumns.Cast<INotifyPropertyChanged>())
-                    col.PropertyChanged -= frozencol_PropertyChanged;
-                this.FrozenColumns.Clear();
+                foreach (INotifyPropertyChanged col in (GridViewColumnCollection)e.OldValue)
+                    col.PropertyChanged -= target.frozencol_PropertyChanged;
             }
-
-            if (this.ScrollableColumns != null)
-                this.ScrollableColumns.Clear();
-
-            var frozenColumnIndex = this.FrozenColumnIndex;
-            var frozenColumns = new GridViewColumnCollection();
-            var scrollableColumns = new GridViewColumnCollection();
-            var columns = this.Columns;
-            if (columns != null)
+            if (e.NewValue != null)
             {
-                foreach (var col in columns.Take(frozenColumnIndex + 1))
-                {
-                    ((INotifyPropertyChanged)col).PropertyChanged += frozencol_PropertyChanged;
-                    frozenColumns.Add(col);
-                }
-                foreach (var col in columns.Skip(frozenColumnIndex + 1))
-                    scrollableColumns.Add(col);
+                foreach (INotifyPropertyChanged col in (GridViewColumnCollection)e.NewValue)
+                    col.PropertyChanged += target.frozencol_PropertyChanged;
             }
-            this.FrozenColumns = frozenColumns;
-            this.ScrollableColumns = scrollableColumns;
-            ResetHorizontalLayout();
         }
+
+        #endregion
+
+        #region NormalColumns
+
+        /// <summary>
+        /// 固定しない(普通にスクロールする)列のコレクション
+        /// </summary>
+        public GridViewColumnCollection NormalColumns
+        {
+            get { return (GridViewColumnCollection)GetValue(NormalColumnsProperty); }
+            set { SetValue(NormalColumnsProperty, value); }
+        }
+
+        public static readonly DependencyProperty NormalColumnsProperty =
+            DependencyProperty.Register("NormalColumns", typeof(GridViewColumnCollection), 
+                                        typeof(ListViewEx), new PropertyMetadata(null));
+        
+        #endregion
+
+        #region FrozenColumnsTotalWidth(ReadOnly)
+
+        /// <summary>
+        /// リストの固定列の領域に適用されるマージン(ベースのScollViewerのスクロール量に応じて右にずらす)
+        /// </summary>
+        public double FrozenColumnsTotalWidth
+        {
+            get { return (double)GetValue(FrozenColumnsTotalWidthProperty); }
+            set { SetValue(FrozenColumnsTotalWidthPropertyKey, value); }
+        }
+
+        private static readonly DependencyPropertyKey FrozenColumnsTotalWidthPropertyKey =
+            DependencyProperty.RegisterReadOnly("FrozenColumnsTotalWidth", typeof(double), typeof(ListViewEx), 
+                                                new PropertyMetadata(0.0));
+        public static readonly DependencyProperty FrozenColumnsTotalWidthProperty = FrozenColumnsTotalWidthPropertyKey.DependencyProperty;
+        
+        #endregion
+        #region FrozenColumnsMargin(ReadOnly)
+
+        /// <summary>
+        /// リストの固定列の領域に適用されるマージン(ベースのScollViewerのスクロール量に応じて右にずらす)
+        /// </summary>
+        public Thickness FrozenColumnsMargin
+        {
+            get { return (Thickness)GetValue(FrozenColumnsMarginProperty); }
+            set { SetValue(FrozenColumnsMarginPropertyKey, value); }
+        }
+
+        private static readonly DependencyPropertyKey FrozenColumnsMarginPropertyKey =
+            DependencyProperty.RegisterReadOnly("FrozenColumnsMargin", typeof(Thickness), typeof(ListViewEx), 
+                                                new PropertyMetadata());
+        public static readonly DependencyProperty FrozenColumnsMarginProperty = FrozenColumnsMarginPropertyKey.DependencyProperty;
+        
+        #endregion
+
+        #region NormalColumnsMargin(ReadOnly)
+
+        /// <summary>
+        /// リストの固定しない列の領域に適用されるマージン(固定列の幅だけ右にずらす)
+        /// </summary>
+        public Thickness NormalColumnsMargin
+        {
+            get { return (Thickness)GetValue(NormalColumnsMarginProperty); }
+            set { SetValue(NormalColumnsMarginPropertyKey, value); }
+        }
+
+        private static readonly DependencyPropertyKey NormalColumnsMarginPropertyKey =
+            DependencyProperty.RegisterReadOnly("NormalColumnsMargin", typeof(Thickness), typeof(ListViewEx), 
+                                                new PropertyMetadata());
+        public static readonly DependencyProperty NormalColumnsMarginProperty = NormalColumnsMarginPropertyKey.DependencyProperty;
+        
+        #endregion
+
+        #region NormalHeadersMargin(ReadOnly)
+
+        /// <summary>
+        /// ヘッダーの固定しない列の領域に適用されるマージン(ヘッダーはScrollViewの外にあるので、このプロパティを使って自力でScrollViewと連動させる)
+        /// </summary>
+        public Thickness NormalHeadersMargin
+        {
+            get { return (Thickness)GetValue(NormalHeadersMarginProperty); }
+            set { SetValue(NormalHeadersMarginPropertyKey, value); }
+        }
+
+        private static readonly DependencyPropertyKey NormalHeadersMarginPropertyKey =
+            DependencyProperty.RegisterReadOnly("NormalHeadersMargin", typeof(Thickness), typeof(ListViewEx), 
+                                                new PropertyMetadata());
+        public static readonly DependencyProperty NormalHeadersMarginProperty = NormalHeadersMarginPropertyKey.DependencyProperty;
+        
+        #endregion
 
         private void frozencol_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "ActualWidth")
             {
-                ResetHorizontalLayout();
+                UpdateMargins();
+            }
+        }
+
+        private void UpdateMargins()
+        {
+            var frozenWidth = this.FrozenColumns.Sum(col => col.ActualWidth + 1);
+            this.FrozenColumnsTotalWidth = frozenWidth;
+            if (_scrollViewer != null)
+            {
+                var frozenColumnsOffset = _scrollViewer.ViewportWidth < frozenWidth ? 0 : _scrollViewer.HorizontalOffset;
+                this.FrozenColumnsMargin = new Thickness(frozenColumnsOffset, 0, 0, 0);
+                this.NormalColumnsMargin = new Thickness(frozenWidth, 0, 0, 0);
+                this.NormalHeadersMargin = new Thickness(frozenWidth - _scrollViewer.HorizontalOffset, 0, 0, 0);
+            }
+            else
+            {
+                this.FrozenColumnsMargin = new Thickness(0);
+                this.NormalColumnsMargin = new Thickness(0);
+                this.NormalHeadersMargin = new Thickness(0);
             }
         }
         
-        private void ResetHorizontalLayout()
-        {
-            var frozenColumns = this.FrozenColumns;
-            double frozenWidth = frozenColumns != null ? 
-                                 frozenColumns.Select(c => c.ActualWidth).Sum()+ 1 : 0;
-            double horizontalOffset = _scrollViewer != null ? _scrollViewer.HorizontalOffset : 0;
-            double viewportWidth = _scrollViewer != null ? _scrollViewer.ViewportWidth: 0;
-
-            this.HorizontalLayout = new HorizontalLayoutInfo(horizontalOffset, viewportWidth, frozenWidth);
-        }
-
         public override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
@@ -186,19 +185,19 @@ namespace WonderfulPanda.Controls
                 _scrollViewer.ScrollChanged += _scrollViewer_ScrollChanged;
                 _scrollViewer.SizeChanged += _scrollViewer_SizeChanged;
             }
-            this.ResetHorizontalLayout();
+            this.UpdateMargins();
         }
 
         private void _scrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            this.ResetHorizontalLayout();
+            this.UpdateMargins();
         }
 
         void _scrollViewer_ScrollChanged(object sender, ScrollChangedEventArgs e)
         {
             if (e.HorizontalChange == 0)
                 return;
-            this.ResetHorizontalLayout();
+            this.UpdateMargins();
         }
 
     }

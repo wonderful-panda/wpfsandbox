@@ -17,17 +17,20 @@
                                 <RowDefinition Height="*" />
                             </Grid.RowDefinitions>
                             <GridViewHeaderRowPresenter Grid.Row="0" Focusable="False"
-                                        HorizontalAlignment="Left"
-                                        Columns="{TemplateBinding ScrollableColumns}"
-                                        Margin="{Binding Path=HorizontalLayout.ScrollableHeadersMargin, 
+                                        Columns="{TemplateBinding NormalColumns}"
+                                        Margin="{Binding Path=NormalHeadersMargin, 
                                                          RelativeSource={RelativeSource TemplatedParent}}"/>
-                            <GridViewHeaderRowPresenter Grid.Row="0" Focusable="False"
-                                        HorizontalAlignment="Left"
+                            <Border BorderThickness="0,0,1,0" BorderBrush="{x:Static SystemColors.ControlDarkBrush}"
+                                    HorizontalAlignment="Left"
+                                    Width="{Binding Path=FrozenColumnsTotalWidth, 
+                                                       RelativeSource={RelativeSource TemplatedParent}}">
+                                <GridViewHeaderRowPresenter Grid.Row="0" Focusable="False"
                                         Columns="{TemplateBinding FrozenColumns}" 
-                                        Margin="{Binding Path=HorizontalLayout.FrozenHeadersMargin, 
+                                        Margin="{Binding Path=FrozenHeadersMargin, 
                                                          RelativeSource={RelativeSource TemplatedParent}}"
-                                        MaxWidth="{Binding Path=HorizontalLayout.FrozenWidth, 
+                                        MaxWidth="{Binding Path=FrozenColumnsTotalWidth, 
                                                            RelativeSource={RelativeSource TemplatedParent}}"/>
+                            </Border>
 
                             <ScrollViewer Name="PART_ScrollViewer" Grid.Row="1"
                                         Padding="{TemplateBinding Control.Padding}"
@@ -56,24 +59,23 @@
                             <ControlTemplate TargetType="ListBoxItem">
                                 <Grid>
                                     <GridViewRowPresenter
-                                        HorizontalAlignment="Left"
-                                        Columns="{Binding ScrollableColumns, 
+                                        Columns="{Binding NormalColumns, 
                                                           RelativeSource={RelativeSource AncestorType=local:ListViewEx}}"
-                                        Margin="{Binding HorizontalLayout.ScrollableColumnsMargin, 
+                                        Margin="{Binding NormalColumnsMargin, 
                                                          RelativeSource={RelativeSource AncestorType=local:ListViewEx}}" />
                                     <Border HorizontalAlignment="Left" VerticalAlignment="Stretch"
                                             BorderThickness="0,0,1,0" BorderBrush="{x:Static SystemColors.ControlDarkBrush}"
                                             Background="{x:Static SystemColors.WindowBrush}"
-                                            Margin="{Binding HorizontalLayout.FrozenColumnsMargin, 
+                                            Margin="{Binding FrozenColumnsMargin, 
                                                              RelativeSource={RelativeSource AncestorType=local:ListViewEx}}"
-                                            Width="{Binding HorizontalLayout.FrozenWidth, 
-                                                            RelativeSource={RelativeSource AncestorType=local:ListViewEx}}" />
+                                            Width="{Binding FrozenColumnsTotalWidth, 
+                                                            RelativeSource={RelativeSource AncestorType=local:ListViewEx}}"/>
                                     <GridViewRowPresenter
-                                        HorizontalAlignment="Left"
-                                        Columns="{Binding FrozenColumns, 
-                                                          RelativeSource={RelativeSource AncestorType=local:ListViewEx}}"
-                                        Margin="{Binding HorizontalLayout.FrozenColumnsMargin, 
-                                                         RelativeSource={RelativeSource AncestorType=local:ListViewEx}}" />
+                                            HorizontalAlignment="Left"
+                                            Columns="{Binding FrozenColumns, 
+                                                              RelativeSource={RelativeSource AncestorType=local:ListViewEx}}"
+                                            Margin="{Binding FrozenColumnsMargin, 
+                                                             RelativeSource={RelativeSource AncestorType=local:ListViewEx}}" />
                                 </Grid>
                             </ControlTemplate>
                         </Setter.Value>
