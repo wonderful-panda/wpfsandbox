@@ -50,12 +50,12 @@ namespace WonderfulPanda.Controls
             if (e.OldValue != null)
             {
                 foreach (INotifyPropertyChanged col in (GridViewColumnCollection)e.OldValue)
-                    col.PropertyChanged -= target.frozencol_PropertyChanged;
+                    col.PropertyChanged -= target.col_PropertyChanged;
             }
             if (e.NewValue != null)
             {
                 foreach (INotifyPropertyChanged col in (GridViewColumnCollection)e.NewValue)
-                    col.PropertyChanged += target.frozencol_PropertyChanged;
+                    col.PropertyChanged += target.col_PropertyChanged;
             }
         }
 
@@ -73,15 +73,15 @@ namespace WonderfulPanda.Controls
         }
 
         public static readonly DependencyProperty NormalColumnsProperty =
-            DependencyProperty.Register("NormalColumns", typeof(GridViewColumnCollection), 
-                                        typeof(ListViewEx), new PropertyMetadata(new GridViewColumnCollection()));
+            DependencyProperty.Register("NormalColumns", typeof(GridViewColumnCollection), typeof(ListViewEx), 
+                                        new PropertyMetadata(new GridViewColumnCollection()));
         
         #endregion
 
         #region FrozenColumnsTotalWidth(ReadOnly)
 
         /// <summary>
-        /// リストの固定列の領域に適用されるマージン(ベースのScollViewerのスクロール量に応じて右にずらす)
+        /// 固定列の合計幅
         /// </summary>
         public double FrozenColumnsTotalWidth
         {
@@ -95,6 +95,36 @@ namespace WonderfulPanda.Controls
         public static readonly DependencyProperty FrozenColumnsTotalWidthProperty = FrozenColumnsTotalWidthPropertyKey.DependencyProperty;
         
         #endregion
+
+
+        #region HorizontalScrollOffset (ReadOnly)
+        public double HorizontalScrollOffset
+        {
+            get { return (double)GetValue(HorizontalScrollOffsetProperty); }
+            protected set { SetValue(_HorizontalScrollOffsetPropertyKey, value); }
+        }
+
+        private static readonly DependencyPropertyKey _HorizontalScrollOffsetPropertyKey =
+            DependencyProperty.RegisterReadOnly("HorizontalScrollOffset", typeof(double), typeof(ListViewEx),
+                                                new PropertyMetadata(0.0));
+        public static readonly DependencyProperty HorizontalScrollOffsetProperty = _HorizontalScrollOffsetPropertyKey.DependencyProperty;
+        #endregion
+
+        #region FrozenColumnsOffset (ReadOnly)
+
+        public double FrozenColumnsOffset
+        {
+            get { return (double)GetValue(FrozenColumnsOffsetProperty); }
+            protected set { SetValue(_FrozenColumnsOffsetPropertyKey, value); }
+        }
+
+        private static readonly DependencyPropertyKey _FrozenColumnsOffsetPropertyKey =
+            DependencyProperty.RegisterReadOnly("FrozenColumnsOffset", typeof(double), typeof(ListViewEx),
+                                                new PropertyMetadata(0.0));
+        public static readonly DependencyProperty FrozenColumnsOffsetProperty = _FrozenColumnsOffsetPropertyKey.DependencyProperty;
+        
+        #endregion
+
         #region FrozenColumnsMargin(ReadOnly)
 
         /// <summary>
@@ -149,11 +179,12 @@ namespace WonderfulPanda.Controls
         
         #endregion
 
-        private void frozencol_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void col_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "ActualWidth")
             {
-                UpdateMargins();
+                if (this.FrozenColumns.Contains(sender as GridViewColumn))
+                    UpdateMargins();
             }
         }
 
@@ -161,18 +192,15 @@ namespace WonderfulPanda.Controls
         {
             var frozenWidth = this.FrozenColumns.Sum(col => col.ActualWidth + 1);
             this.FrozenColumnsTotalWidth = frozenWidth;
-            if (_scrollViewer != null)
+            if (_scrollViewer != null && frozenWidth < _scrollViewer.ViewportWidth)
             {
-                var frozenColumnsOffset = _scrollViewer.ViewportWidth < frozenWidth ? 0 : _scrollViewer.HorizontalOffset;
-                this.FrozenColumnsMargin = new Thickness(frozenColumnsOffset, 0, 0, 0);
-                this.NormalColumnsMargin = new Thickness(frozenWidth, 0, 0, 0);
-                this.NormalHeadersMargin = new Thickness(frozenWidth - _scrollViewer.HorizontalOffset, 0, 0, 0);
+                this.FrozenColumnsOffset = _scrollViewer.HorizontalOffset;
+                this.HorizontalScrollOffset = _scrollViewer.HorizontalOffset;
             }
             else
             {
-                this.FrozenColumnsMargin = new Thickness(0);
-                this.NormalColumnsMargin = new Thickness(0);
-                this.NormalHeadersMargin = new Thickness(0);
+                this.FrozenColumnsOffset = 0;
+                this.HorizontalScrollOffset = 0;
             }
         }
         

@@ -27,6 +27,31 @@ namespace WonderfulPanda.Controls
         }
     }
 
+    public class DoubleToThickness : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            try
+            {
+                var transform = new Thickness(1);
+                if (parameter != null)
+                    transform = (Thickness)new ThicknessConverter().ConvertFrom(parameter);
+                var v = System.Convert.ToDouble(value);
+                return new Thickness(transform.Left * v, transform.Top * v, transform.Right * v, transform.Bottom * v);
+            }
+            catch (FormatException)
+            {
+                return new Thickness(0);
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+
+    }
+
     public class OneWayValueConverter<T> : IValueConverter
     {
 
@@ -49,26 +74,16 @@ namespace WonderfulPanda.Controls
 
     public static class Converters
     {
-        public static IMultiValueConverter MinOfInt { get; private set; }
-        public static IMultiValueConverter MaxOfInt { get; private set; }
-        public static IMultiValueConverter MinOfDouble { get; private set; }
-        public static IMultiValueConverter MaxOfDouble { get; private set; }
         public static IMultiValueConverter Rect { get; private set; }
-        public static IValueConverter LeftMargin { get; private set; }
-        public static IValueConverter LeftMarginNegate { get; private set; }
+        public static DoubleToThickness DoubleToThickness { get; private set; }
 
         static Converters()
         {
-            MinOfInt = new OneWayMultiConverter<int>(values => values.Select(ToIntSafe).Min());
-            MaxOfInt = new OneWayMultiConverter<int>(values => values.Select(ToIntSafe).Max());
-            MinOfDouble = new OneWayMultiConverter<double>(values => values.Select(ToDoubleSafe).Min());
-            MaxOfDouble = new OneWayMultiConverter<double>(values => values.Select(ToDoubleSafe).Max());
             Rect = new OneWayMultiConverter<Rect>(values => {
                 var vals = values.Select(ToDoubleSafe).Concat(Enumerable.Repeat(0.0, 4)).Take(4).ToArray();
                 return new Rect(vals[0], vals[1], vals[2], vals[3]);
             });
-            LeftMargin = new OneWayValueConverter<Thickness>(value => new Thickness(ToDoubleSafe(value), 0, 0, 0));
-            LeftMarginNegate = new OneWayValueConverter<Thickness>(value => new Thickness(ToDoubleSafe(value) * -1, 0, 0, 0));
+            DoubleToThickness = new DoubleToThickness();
         }
 
         static int ToIntSafe(object value)
