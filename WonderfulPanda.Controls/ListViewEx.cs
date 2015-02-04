@@ -96,20 +96,6 @@ namespace WonderfulPanda.Controls
         
         #endregion
 
-
-        #region HorizontalScrollOffset (ReadOnly)
-        public double HorizontalScrollOffset
-        {
-            get { return (double)GetValue(HorizontalScrollOffsetProperty); }
-            protected set { SetValue(_HorizontalScrollOffsetPropertyKey, value); }
-        }
-
-        private static readonly DependencyPropertyKey _HorizontalScrollOffsetPropertyKey =
-            DependencyProperty.RegisterReadOnly("HorizontalScrollOffset", typeof(double), typeof(ListViewEx),
-                                                new PropertyMetadata(0.0));
-        public static readonly DependencyProperty HorizontalScrollOffsetProperty = _HorizontalScrollOffsetPropertyKey.DependencyProperty;
-        #endregion
-
         #region FrozenColumnsOffset (ReadOnly)
 
         public double FrozenColumnsOffset
@@ -195,12 +181,10 @@ namespace WonderfulPanda.Controls
             if (_scrollViewer != null && frozenWidth < _scrollViewer.ViewportWidth)
             {
                 this.FrozenColumnsOffset = _scrollViewer.HorizontalOffset;
-                this.HorizontalScrollOffset = _scrollViewer.HorizontalOffset;
             }
             else
             {
                 this.FrozenColumnsOffset = 0;
-                this.HorizontalScrollOffset = 0;
             }
         }
         

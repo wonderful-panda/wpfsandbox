@@ -6,12 +6,12 @@
         Title="MainWindow" Height="350" Width="525">
     <Window.Resources>
         <GridViewColumnCollection x:Key="frozencolumns">
-            <GridViewColumn Header="Name1" DisplayMemberBinding="{Binding Name}" />
-            <GridViewColumn Header="Name2" DisplayMemberBinding="{Binding Name}" />
+            <GridViewColumn Header="Column1" DisplayMemberBinding="{Binding Name}" />
+            <GridViewColumn Header="Column2" DisplayMemberBinding="{Binding Name}" />
         </GridViewColumnCollection>
         <GridViewColumnCollection x:Key="columns">
-            <GridViewColumn Header="Value1" DisplayMemberBinding="{Binding Value}" />
-            <GridViewColumn Header="Value2" DisplayMemberBinding="{Binding Value}" />
+            <GridViewColumn Header="Column3" DisplayMemberBinding="{Binding Value}" />
+            <GridViewColumn Header="Column4" DisplayMemberBinding="{Binding Value}" />
         </GridViewColumnCollection>
         <local:ViewModel x:Key="viewmodel" />
     </Window.Resources>
