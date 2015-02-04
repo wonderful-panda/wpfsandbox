@@ -52,62 +52,43 @@ namespace WonderfulPanda.Controls
 
     }
 
-    public class OneWayValueConverter<T> : IValueConverter
+    public class DoublesToRect : IMultiValueConverter
     {
-
-        readonly Func<object, T> _convert;
-        public OneWayValueConverter(Func<object, T> convert)
+        public object Convert(object[] values, Type targetType, object parameter, System.Globalization.CultureInfo culture)
         {
-            _convert = convert;
+            var doubles = values.Select(ToDouble).ToArray();
+            switch (doubles.Length)
+            {
+                case 2:
+                    return new Rect(0, 0, doubles[0], doubles[1]);
+                case 4:
+                    return new Rect(doubles[0], doubles[1], doubles[2], doubles[3]);
+                default:
+                    return Rect.Empty;
+            }
         }
 
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            return _convert(value);
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, System.Globalization.CultureInfo culture)
         {
             throw new NotSupportedException();
         }
-    }
 
-    public static class Converters
-    {
-        public static IMultiValueConverter Rect { get; private set; }
-        public static DoubleToThickness DoubleToThickness { get; private set; }
-
-        static Converters()
-        {
-            Rect = new OneWayMultiConverter<Rect>(values => {
-                var vals = values.Select(ToDoubleSafe).Concat(Enumerable.Repeat(0.0, 4)).Take(4).ToArray();
-                return new Rect(vals[0], vals[1], vals[2], vals[3]);
-            });
-            DoubleToThickness = new DoubleToThickness();
-        }
-
-        static int ToIntSafe(object value)
+        double ToDouble(object value)
         {
             try
             {
-                return Convert.ToInt32(value);
-            }
-            catch
-            {
-                return 0;
-            }
-        }
-
-        static double ToDoubleSafe(object value)
-        {
-            try
-            {
-                return Convert.ToDouble(value);
+                return System.Convert.ToDouble(value);
             }
             catch
             {
                 return 0.0;
             }
         }
+    }
+
+    public static class Converters
+    {
+        public static readonly DoublesToRect DoublesToRect = new DoublesToRect();
+        public static readonly DoubleToThickness DoubleToThickness = new DoubleToThickness();
     }
 }

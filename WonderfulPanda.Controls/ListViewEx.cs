@@ -50,12 +50,21 @@ namespace WonderfulPanda.Controls
             if (e.OldValue != null)
             {
                 foreach (INotifyPropertyChanged col in (GridViewColumnCollection)e.OldValue)
-                    col.PropertyChanged -= target.col_PropertyChanged;
+                    col.PropertyChanged -= target.frozencol_PropertyChanged;
             }
             if (e.NewValue != null)
             {
                 foreach (INotifyPropertyChanged col in (GridViewColumnCollection)e.NewValue)
-                    col.PropertyChanged += target.col_PropertyChanged;
+                    col.PropertyChanged += target.frozencol_PropertyChanged;
+            }
+        }
+
+        private void frozencol_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "ActualWidth")
+            {
+                if (this.FrozenColumns.Contains(sender as GridViewColumn))
+                    UpdateMargins();
             }
         }
 
@@ -111,76 +120,20 @@ namespace WonderfulPanda.Controls
         
         #endregion
 
-        #region FrozenColumnsMargin(ReadOnly)
-
-        /// <summary>
-        /// リストの固定列の領域に適用されるマージン(ベースのScollViewerのスクロール量に応じて右にずらす)
-        /// </summary>
-        public Thickness FrozenColumnsMargin
-        {
-            get { return (Thickness)GetValue(FrozenColumnsMarginProperty); }
-            set { SetValue(FrozenColumnsMarginPropertyKey, value); }
-        }
-
-        private static readonly DependencyPropertyKey FrozenColumnsMarginPropertyKey =
-            DependencyProperty.RegisterReadOnly("FrozenColumnsMargin", typeof(Thickness), typeof(ListViewEx), 
-                                                new PropertyMetadata());
-        public static readonly DependencyProperty FrozenColumnsMarginProperty = FrozenColumnsMarginPropertyKey.DependencyProperty;
-        
-        #endregion
-
-        #region NormalColumnsMargin(ReadOnly)
-
-        /// <summary>
-        /// リストの固定しない列の領域に適用されるマージン(固定列の幅だけ右にずらす)
-        /// </summary>
-        public Thickness NormalColumnsMargin
-        {
-            get { return (Thickness)GetValue(NormalColumnsMarginProperty); }
-            set { SetValue(NormalColumnsMarginPropertyKey, value); }
-        }
-
-        private static readonly DependencyPropertyKey NormalColumnsMarginPropertyKey =
-            DependencyProperty.RegisterReadOnly("NormalColumnsMargin", typeof(Thickness), typeof(ListViewEx), 
-                                                new PropertyMetadata());
-        public static readonly DependencyProperty NormalColumnsMarginProperty = NormalColumnsMarginPropertyKey.DependencyProperty;
-        
-        #endregion
-
-        #region NormalHeadersMargin(ReadOnly)
-
-        /// <summary>
-        /// ヘッダーの固定しない列の領域に適用されるマージン(ヘッダーはScrollViewの外にあるので、このプロパティを使って自力でScrollViewと連動させる)
-        /// </summary>
-        public Thickness NormalHeadersMargin
-        {
-            get { return (Thickness)GetValue(NormalHeadersMarginProperty); }
-            set { SetValue(NormalHeadersMarginPropertyKey, value); }
-        }
-
-        private static readonly DependencyPropertyKey NormalHeadersMarginPropertyKey =
-            DependencyProperty.RegisterReadOnly("NormalHeadersMargin", typeof(Thickness), typeof(ListViewEx), 
-                                                new PropertyMetadata());
-        public static readonly DependencyProperty NormalHeadersMarginProperty = NormalHeadersMarginPropertyKey.DependencyProperty;
-        
-        #endregion
-
-        private void col_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "ActualWidth")
-            {
-                if (this.FrozenColumns.Contains(sender as GridViewColumn))
-                    UpdateMargins();
-            }
-        }
-
         private void UpdateMargins()
         {
             var frozenWidth = this.FrozenColumns.Sum(col => col.ActualWidth + 1);
             this.FrozenColumnsTotalWidth = frozenWidth;
-            if (_scrollViewer != null && frozenWidth < _scrollViewer.ViewportWidth)
+            if (_scrollViewer != null)
             {
-                this.FrozenColumnsOffset = _scrollViewer.HorizontalOffset;
+                var hOffset = _scrollViewer.HorizontalOffset;
+                var viewWidth = _scrollViewer.ViewportWidth;
+                if (frozenWidth < viewWidth)
+                    this.FrozenColumnsOffset = hOffset;
+                else if (hOffset + viewWidth - frozenWidth > 0)
+                    this.FrozenColumnsOffset = hOffset + viewWidth - frozenWidth;
+                else
+                    this.FrozenColumnsOffset = 0;
             }
             else
             {
